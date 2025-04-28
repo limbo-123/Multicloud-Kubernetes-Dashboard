@@ -1,0 +1,689 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ECS Dashboard</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+        <!-- Bootstrap JS and dependencies -->
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.min.js"></script>
+
+        <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.min.js"></script>
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
+    
+    <link href="https://cdn.jsdelivr.net/npm/xterm/css/xterm.css" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/xterm/lib/xterm.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/xterm/css/xterm.css" />
+    <script src="https://cdn.jsdelivr.net/npm/xterm/lib/xterm.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Xterm.js Stylesheet -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/xterm/css/xterm.css" />
+
+<!-- Xterm.js Script -->
+<script src="https://cdn.jsdelivr.net/npm/xterm/lib/xterm.js"></script>
+
+    <style>
+        body {
+            font-family: 'Roboto', Arial, sans-serif;
+            background-color: #f8f9fa;
+            font-size: 14px;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 280px;
+            height: 100vh;
+            background: linear-gradient(135deg, #4facfe, #00f2fe);
+            color: white;
+            padding: 20px;
+            position: fixed;
+        }
+
+        #podTabsContent .card-body {
+            font-size: 12px;  /* Smaller font size for the content */
+        }
+        
+        #podTabsContent .card-body strong {
+            font-size: 14px;  /* Keep strong text slightly larger */
+        }
+        
+        /* Adjust the header size if needed */
+        #podTabsContent .card-header {
+            font-size: 14px;  /* Smaller font size for the header */
+        }
+
+        .nav-pills .nav-item {
+            margin-right: 20px;  /* Adjust the space between each tab */
+        }
+        
+        /* Optionally, add more padding inside the tabs for better appearance */
+        .nav-pills .nav-link {
+            padding-left: 20px;
+            padding-right: 20px;
+        }
+        
+        /* Optional: Add a bottom border or change background color when active */
+        .nav-pills .nav-link.active {
+            background-color: #4facfe;
+            border-bottom: 3px solid #ffffff;  /* Optional: Add a border for the active tab */
+        }
+
+        .sidebar h2 {
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 22px;
+            font-weight: bold;
+            color: #ffffff;
+        }
+
+        .menu a {
+            text-decoration: none;
+            font-size: 14px;
+            color: white;
+            padding: 10px 20px;
+            margin: 10px 0;
+            display: block;
+            border-radius: 8px;
+            transition: all 0.3s ease-in-out;
+        }
+
+        .menu a:hover {
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .menu a i {
+            margin-right: 10px;
+        }
+
+        /* Main Content */
+        .content {
+            margin-left: 280px;
+            padding: 30px;
+            background-color: #f8f9fa;
+            min-height: 100vh;
+        }
+
+        .content h2 {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 20px;
+            color: #4facfe;
+        }
+
+        /* Improved Card Styling for Pod Details */
+        .card {
+            margin-bottom: 20px;
+            border-radius: 10px;
+            padding: 20px;
+            background-color: #ffffff;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .card-header {
+            background-color: #f1f1f1;
+            font-weight: bold;
+            font-size: 18px;
+        }
+
+        .card-body {
+            font-size: 16px;
+        }
+
+        .card-body div {
+            margin-bottom: 10px;
+        }
+
+        .card-footer {
+            background-color: #f1f1f1;
+            text-align: center;
+            padding: 10px;
+            font-size: 14px;
+            color: #777;
+        }
+
+        /* Styling Labels */
+        .labels div {
+            margin-bottom: 5px;
+        }
+
+        #terminal-container {
+            height: 600px;
+            width: 130%;
+            background-color: #000; /* Optional: Give it a terminal-like background */
+            overflow: hidden;
+        }
+        
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 100%;
+                height: auto;
+                position: relative;
+            }
+
+            .content {
+                margin-left: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <h2>ECS Dashboard</h2>
+        <nav class="menu">
+            <a href="/" onclick="showHome()"><i class="fas fa-home"></i> Home</a>
+            
+            <!-- Collapsible Menu for Workloads -->
+            <a class="d-flex justify-content-between align-items-center" data-bs-toggle="collapse" href="#workload-menu" role="button" aria-expanded="false" aria-controls="workload-menu">
+                <span><i class="fas fa-th-list"></i> Menu</span>
+                <i class="fas fa-chevron-down"></i>
+            </a>
+            <div class="collapse ms-3" id="workload-menu">
+                <a href="#" onclick="showPods()"><i class="fas fa-cube"></i> Services</a>
+                <a href="#" onclick="showDeployment()"><i class="fas fa-box"></i> Tasks</a>
+                <a href="#" onclick="showDs()"><i class="fas fa-server"></i> Capacity Provider</a>
+                <a href="{% url 'list_task_definition' 'us-east-1' %}"><i class="fas fa-database"></i> Task Definition</a>
+                <a href="#" onclick="loadContent('ReplicaSets')"><i class="fas fa-clone"></i> Account Settings </a>
+            </div>
+            <!-- Other Menu Items -->
+        </nav>
+  
+    </div>
+{% if listing_td %}
+<!-- Main content area -->
+<main class="content">
+    <div class="pod-details">
+        <div class="d-flex justify-content-between align-items-center">
+            <!-- Pod Details Header -->
+            <h3>Welcome to Task Definition in {{region}}</h3>
+            
+            <!-- Right-hand side controls -->
+            <div class="d-flex align-items-center">
+                <form action="{% url 'delete_pod' %}" method="POST">
+                    {% csrf_token %}
+                    <input type="hidden" name="pod_name" value="{{ pod_detail.metadata.name }}">
+                    <input type="hidden" name="pod_ns" value="{{ pod_detail.metadata.namespace }}">
+                     <!-- Delete Icon Button -->
+                    <button class="btn btn-danger btn-sm me-2" title="Delete Pod" type="submit">
+                    <i class="bi bi-trash"></i>
+                    </button>
+                </form>
+                
+            </div>
+        </div>
+            
+        </div>
+
+        &nbsp;
+        &nbsp;
+
+        <!-- Tabs Navigation -->
+        <ul class="nav nav-pills" id="podTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <a class="nav-link active" id="overview-tab" data-bs-toggle="pill" href="#overview" role="tab" aria-controls="overview" aria-selected="true">Overview</a>
+            </li>
+            <li class="nav-item" role="presentation">
+                <a class="nav-link" id="events-tab" data-bs-toggle="pill" href="#events" role="tab" aria-controls="events" aria-selected="false">Services</a>
+            </li>
+            <li class="nav-item" role="presentation">
+                <a class="nav-link" id="yaml-tab" data-bs-toggle="pill" href="#yaml" role="tab" aria-controls="yaml" aria-selected="false">Tasks</a>
+            </li>
+            <li class="nav-item" role="presentation">
+                <a class="nav-link" id="yaml-tab" data-bs-toggle="pill" href="#ci" role="tab" aria-controls="ci" aria-selected="false">Container Instances</a>
+            </li>
+        </ul>
+    </div>
+    
+&nbsp;
+<!-- Tab Content -->
+<div class="tab-content" id="podTabsContent">
+    <!-- Overview Tab -->
+    <div class="tab-pane fade show active" id="overview" role="tabpanel" aria-labelledby="overview-tab">
+        <div class="card">
+            <div class="card-header">
+                General Information
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <!-- Left Column -->
+                    <div class="col-md-6">
+                        <div><strong>Name:</strong> {{ td_details }}</div>
+                        <div><strong>Region:</strong> {{ region }}</div>
+                        <div><strong>Cluster Arn:</strong> {{ clusterArn.clusterArn }}</div>
+                        <div><strong>Status:</strong> {{ clusterArn.status }}</div>
+                        <div><strong>ContainerInstances:</strong> {{clusterArn.registeredContainerInstancesCount}} </div>
+                        <div><strong>Running Tasks:</strong> {{clusterArn.runningTasksCount}} </div>
+                        <div><strong>Pending Tasks:</strong> {{clusterArn.pendingTasksCount}} </div>
+                        <div><strong>Active Services:</strong> {{clusterArn.activeServicesCount}} </div>
+                        <div><strong>Other Details:</strong> </div>
+                        <ul>
+                        {% for data in clusterArn.statistics %}
+                        <li>
+                         {{data.name}} : {{data.value}}
+                        </li>
+                        {% endfor %}
+                    </ul>
+                    </div>
+                    <!-- Right Column -->
+                    <div class="col-md-6">
+                        {% for data in clusterArn.settings %}
+                        <div><strong>Container Insights:</strong> {{ data.value }}</div>
+                        {% endfor %}
+                        <div><strong>Default Capacity Provider:</strong> {{ clusterArn.defaultCapacityProviderStrategy }}</div>
+                        <div><strong>Capacity Provider:</strong> 
+                        <ul>
+                            {% for cp in clusterArn.capacityProviders %}
+                            <li>
+                            {{ cp }} 
+                            </li>
+                            {% endfor %}
+                        </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+<!-- Tab Content -->
+
+    <!-- Overview Tab -->
+    <div class="tab-pane fade show active" id="overview" role="tabpanel" aria-labelledby="overview-tab">
+        
+    </div>
+</div>
+
+
+        <!-- YAML Tab -->
+        <div class="tab-pane fade" id="yaml" role="tabpanel" aria-labelledby="yaml-tab">
+            <div class="card">
+                <div class="card-header">
+                    Tasks
+                </div>
+                <div class="card-body">
+                    {% for id in tasks %}
+                    <pre><a href='#'>{{ id }}</pre></a>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+         <!-- YAML Tab -->
+         <div class="tab-pane fade" id="ci" role="tabpanel" aria-labelledby="ci-tab">
+            <div class="card">
+                <div class="card-header">
+                    Infrastructure
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <!-- Left Column -->
+                        <div class="col-md-6">
+                            
+                            <div><strong>Container Instances:</strong> </div>
+                            <ul>
+                                {% for instance in list_container_instance %}
+                                <li>
+                                 {{instance.containerInstanceArn}}
+                                </li>
+                                {% endfor %}
+                            </ul>
+                            <div><strong>Instance Ids:</strong></div>
+                            <ul>
+                                {% for instance in list_container_instance %}
+                                <li>
+                                 {{instance.ec2InstanceId}} have ecs agent "{{instance.agentConnected}}" condition.
+                                </li>
+                                {% endfor %}
+                            </ul>
+                            {% for instance in list_container_instance %}
+                            <div><strong>Capacity Provider:</strong> {{ instance.capacityProviderName }} </div>
+                            {{ "<!--" }}
+                            {% endfor %}
+                            {{ "-->" }}
+                            <div><strong>Agent Info:</strong>  </div>
+                            <ul>
+                                {% for instance in list_container_instance %}
+                                <li>
+                                 AgentVersion: {{instance.versionInfo.agentVersion}} 
+                                </li>
+                                <li>
+                                 {{instance.versionInfo.dockerVersion}} 
+                                </li>
+                                {{ "<!--" }}
+                                {% endfor %}
+                                {{ "-->" }}
+                            </ul>
+                            <div><strong>Running Tasks:</strong>  </div>
+                            <ul>
+                                {% for instance in list_container_instance %}
+                                <li>
+                                  {{instance.ec2InstanceId}} : {{instance.runningTasksCount}}
+                                </li>
+                                {% endfor %}
+                            </ul>
+                            
+                            <div><strong>Pending Tasks:</strong> </div>
+                            <ul>
+                                {% for instance in list_container_instance %}
+                                <li>
+                                  {{instance.ec2InstanceId}} : {{instance.pendingTasksCount}}
+                                </li>
+                                {% endfor %}
+                            </ul>
+                            <div><strong>Remaining Resources:</strong>  </div>
+                            <ul>
+                                {% for instance in list_container_instance %}
+                                <li>
+                                    {{instance.ec2InstanceId}} :
+                                </li>
+                                {% for resources in instance.remainingResources %}
+                                    {% if resources.name == 'CPU' %}
+                                        CPU: {{resources.integerValue}} |
+                                    {% endif %}
+                                    {% if resources.name == 'MEMORY' %}
+                                        Memory: {{resources.integerValue}} 
+                                    {% endif %}
+                                {% endfor %}
+                                {% endfor %}
+                            </ul>
+                        </div>
+                        <!-- Right Column -->
+                        <div class="col-md-6">
+                            
+                            <div><strong>Capability:</strong> </div>
+                            <ul>
+                                {% for instance in list_container_instance %}
+                                &nbsp;
+                                <strong> Instance Id {{instance.ec2InstanceId}} </strong>
+                                
+                                {% for all in instance.attributes %}
+                                <li>
+                                   {{ all.name }} : {{all.value}}
+                                </li>
+                                {% endfor %}
+                                {% endfor %}
+                            </ul>
+                        </div>
+                </div>
+            </div>
+        </div>
+
+
+                <!-- Events Tab -->
+                <div class="tab-pane fade" id="events" role="tabpanel" aria-labelledby="events-tab">
+                    <div class="card">
+                        <div class="card-header">
+                            Services
+                        </div>
+                        <div class="card-body">
+                            {% for service_arn, service_name in services %}
+                            <pre><a href="{% url 'ecs' clusterArn.clusterName service_name region %}">{{ service_arn }}</a></pre>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+{% else %}
+
+<!-- Main content area -->
+<main class="content">
+    <div class="pod-details">
+        <div class="d-flex justify-content-between align-items-center">
+            <!-- Pod Details Header -->
+            <h3>Detail of ECS Cluster "{{ clusterArn.clusterName }}" in region "{{ region }}"</h3>
+            
+            <!-- Right-hand side controls -->
+            <div class="d-flex align-items-center">
+                <form action="{% url 'delete_pod' %}" method="POST">
+                    {% csrf_token %}
+                    <input type="hidden" name="pod_name" value="{{ pod_detail.metadata.name }}">
+                    <input type="hidden" name="pod_ns" value="{{ pod_detail.metadata.namespace }}">
+                     <!-- Delete Icon Button -->
+                    <button class="btn btn-danger btn-sm me-2" title="Delete Pod" type="submit">
+                    <i class="bi bi-trash"></i>
+                    </button>
+                </form>
+                
+            </div>
+        </div>
+            
+        </div>
+
+        &nbsp;
+        &nbsp;
+
+        <!-- Tabs Navigation -->
+        <ul class="nav nav-pills" id="podTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <a class="nav-link active" id="overview-tab" data-bs-toggle="pill" href="#overview" role="tab" aria-controls="overview" aria-selected="true">Overview</a>
+            </li>
+            <li class="nav-item" role="presentation">
+                <a class="nav-link" id="events-tab" data-bs-toggle="pill" href="#events" role="tab" aria-controls="events" aria-selected="false">Services</a>
+            </li>
+            <li class="nav-item" role="presentation">
+                <a class="nav-link" id="yaml-tab" data-bs-toggle="pill" href="#yaml" role="tab" aria-controls="yaml" aria-selected="false">Tasks</a>
+            </li>
+            <li class="nav-item" role="presentation">
+                <a class="nav-link" id="yaml-tab" data-bs-toggle="pill" href="#ci" role="tab" aria-controls="ci" aria-selected="false">Container Instances</a>
+            </li>
+        </ul>
+    </div>
+    
+&nbsp;
+<!-- Tab Content -->
+<div class="tab-content" id="podTabsContent">
+    <!-- Overview Tab -->
+    <div class="tab-pane fade show active" id="overview" role="tabpanel" aria-labelledby="overview-tab">
+        <div class="card">
+            <div class="card-header">
+                General Information
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <!-- Left Column -->
+                    <div class="col-md-6">
+                        <div><strong>Name:</strong> {{ clusterArn.clusterName }}</div>
+                        <div><strong>Region:</strong> {{ region }}</div>
+                        <div><strong>Cluster Arn:</strong> {{ clusterArn.clusterArn }}</div>
+                        <div><strong>Status:</strong> {{ clusterArn.status }}</div>
+                        <div><strong>ContainerInstances:</strong> {{clusterArn.registeredContainerInstancesCount}} </div>
+                        <div><strong>Running Tasks:</strong> {{clusterArn.runningTasksCount}} </div>
+                        <div><strong>Pending Tasks:</strong> {{clusterArn.pendingTasksCount}} </div>
+                        <div><strong>Active Services:</strong> {{clusterArn.activeServicesCount}} </div>
+                        <div><strong>Other Details:</strong> </div>
+                        <ul>
+                        {% for data in clusterArn.statistics %}
+                        <li>
+                         {{data.name}} : {{data.value}}
+                        </li>
+                        {% endfor %}
+                    </ul>
+                    </div>
+                    <!-- Right Column -->
+                    <div class="col-md-6">
+                        {% for data in clusterArn.settings %}
+                        <div><strong>Container Insights:</strong> {{ data.value }}</div>
+                        {% endfor %}
+                        <div><strong>Default Capacity Provider:</strong> {{ clusterArn.defaultCapacityProviderStrategy }}</div>
+                        <div><strong>Capacity Provider:</strong> 
+                        <ul>
+                            {% for cp in clusterArn.capacityProviders %}
+                            <li>
+                            {{ cp }} 
+                            </li>
+                            {% endfor %}
+                        </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+<!-- Tab Content -->
+
+    <!-- Overview Tab -->
+    <div class="tab-pane fade show active" id="overview" role="tabpanel" aria-labelledby="overview-tab">
+        
+    </div>
+</div>
+
+
+        <!-- YAML Tab -->
+        <div class="tab-pane fade" id="yaml" role="tabpanel" aria-labelledby="yaml-tab">
+            <div class="card">
+                <div class="card-header">
+                    Tasks
+                </div>
+                <div class="card-body">
+                    {% for id in tasks %}
+                    <pre><a href='#'>{{ id }}</pre></a>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+         <!-- YAML Tab -->
+         <div class="tab-pane fade" id="ci" role="tabpanel" aria-labelledby="ci-tab">
+            <div class="card">
+                <div class="card-header">
+                    Infrastructure
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <!-- Left Column -->
+                        <div class="col-md-6">
+                            
+                            <div><strong>Container Instances:</strong> </div>
+                            <ul>
+                                {% for instance in list_container_instance %}
+                                <li>
+                                 {{instance.containerInstanceArn}}
+                                </li>
+                                {% endfor %}
+                            </ul>
+                            <div><strong>Instance Ids:</strong></div>
+                            <ul>
+                                {% for instance in list_container_instance %}
+                                <li>
+                                 {{instance.ec2InstanceId}} have ecs agent "{{instance.agentConnected}}" condition.
+                                </li>
+                                {% endfor %}
+                            </ul>
+                            {% for instance in list_container_instance %}
+                            <div><strong>Capacity Provider:</strong> {{ instance.capacityProviderName }} </div>
+                            {{ "<!--" }}
+                            {% endfor %}
+                            {{ "-->" }}
+                            <div><strong>Agent Info:</strong>  </div>
+                            <ul>
+                                {% for instance in list_container_instance %}
+                                <li>
+                                 AgentVersion: {{instance.versionInfo.agentVersion}} 
+                                </li>
+                                <li>
+                                 {{instance.versionInfo.dockerVersion}} 
+                                </li>
+                                {{ "<!--" }}
+                                {% endfor %}
+                                {{ "-->" }}
+                            </ul>
+                            <div><strong>Running Tasks:</strong>  </div>
+                            <ul>
+                                {% for instance in list_container_instance %}
+                                <li>
+                                  {{instance.ec2InstanceId}} : {{instance.runningTasksCount}}
+                                </li>
+                                {% endfor %}
+                            </ul>
+                            
+                            <div><strong>Pending Tasks:</strong> </div>
+                            <ul>
+                                {% for instance in list_container_instance %}
+                                <li>
+                                  {{instance.ec2InstanceId}} : {{instance.pendingTasksCount}}
+                                </li>
+                                {% endfor %}
+                            </ul>
+                            <div><strong>Remaining Resources:</strong>  </div>
+                            <ul>
+                                {% for instance in list_container_instance %}
+                                <li>
+                                    {{instance.ec2InstanceId}} :
+                                </li>
+                                {% for resources in instance.remainingResources %}
+                                    {% if resources.name == 'CPU' %}
+                                        CPU: {{resources.integerValue}} |
+                                    {% endif %}
+                                    {% if resources.name == 'MEMORY' %}
+                                        Memory: {{resources.integerValue}} 
+                                    {% endif %}
+                                {% endfor %}
+                                {% endfor %}
+                            </ul>
+                        </div>
+                        <!-- Right Column -->
+                        <div class="col-md-6">
+                            
+                            <div><strong>Capability:</strong> </div>
+                            <ul>
+                                {% for instance in list_container_instance %}
+                                &nbsp;
+                                <strong> Instance Id {{instance.ec2InstanceId}} </strong>
+                                
+                                {% for all in instance.attributes %}
+                                <li>
+                                   {{ all.name }} : {{all.value}}
+                                </li>
+                                {% endfor %}
+                                {% endfor %}
+                            </ul>
+                        </div>
+                </div>
+            </div>
+        </div>
+
+
+                <!-- Events Tab -->
+                <div class="tab-pane fade" id="events" role="tabpanel" aria-labelledby="events-tab">
+                    <div class="card">
+                        <div class="card-header">
+                            Services
+                        </div>
+                        <div class="card-body">
+                            {% for service_arn, service_name in services %}
+                            <pre><a href="{% url 'ecs' clusterArn.clusterName service_name region %}">{{ service_arn }}</a></pre>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+{% endif %}
+    <!-- Bootstrap JS and dependencies -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.min.js"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.min.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/css/bootstrap.min.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"></script>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
+
+<link href="https://cdn.jsdelivr.net/npm/xterm/css/xterm.css" rel="stylesheet" />
+<script src="https://cdn.jsdelivr.net/npm/xterm/lib/xterm.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/xterm/css/xterm.css" />
+<script src="https://cdn.jsdelivr.net/npm/xterm/lib/xterm.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+              
+</body>
+</html>
+    

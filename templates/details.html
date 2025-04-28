@@ -1,0 +1,888 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kubernetes Dashboard</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+        <!-- Bootstrap JS and dependencies -->
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.min.js"></script>
+
+        <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.min.js"></script>
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
+    
+    <link href="https://cdn.jsdelivr.net/npm/xterm/css/xterm.css" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/xterm/lib/xterm.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/xterm/css/xterm.css" />
+    <script src="https://cdn.jsdelivr.net/npm/xterm/lib/xterm.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Xterm.js Stylesheet -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/xterm/css/xterm.css" />
+
+<!-- Xterm.js Script -->
+<script src="https://cdn.jsdelivr.net/npm/xterm/lib/xterm.js"></script>
+
+    <style>
+        body {
+            font-family: 'Roboto', Arial, sans-serif;
+            background-color: #f8f9fa;
+            font-size: 14px;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 280px;
+            height: 100vh;
+            background: linear-gradient(135deg, #4facfe, #00f2fe);
+            color: white;
+            padding: 20px;
+            position: fixed;
+        }
+
+        #podTabsContent .card-body {
+            font-size: 12px;  /* Smaller font size for the content */
+        }
+        
+        #podTabsContent .card-body strong {
+            font-size: 14px;  /* Keep strong text slightly larger */
+        }
+        
+        /* Adjust the header size if needed */
+        #podTabsContent .card-header {
+            font-size: 14px;  /* Smaller font size for the header */
+        }
+
+        .nav-pills .nav-item {
+            margin-right: 20px;  /* Adjust the space between each tab */
+        }
+        
+        /* Optionally, add more padding inside the tabs for better appearance */
+        .nav-pills .nav-link {
+            padding-left: 20px;
+            padding-right: 20px;
+        }
+        
+        /* Optional: Add a bottom border or change background color when active */
+        .nav-pills .nav-link.active {
+            background-color: #4facfe;
+            border-bottom: 3px solid #ffffff;  /* Optional: Add a border for the active tab */
+        }
+
+        .sidebar h2 {
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 22px;
+            font-weight: bold;
+            color: #ffffff;
+        }
+
+        .menu a {
+            text-decoration: none;
+            font-size: 14px;
+            color: white;
+            padding: 10px 20px;
+            margin: 10px 0;
+            display: block;
+            border-radius: 8px;
+            transition: all 0.3s ease-in-out;
+        }
+
+        .menu a:hover {
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .menu a i {
+            margin-right: 10px;
+        }
+
+        /* Main Content */
+        .content {
+            margin-left: 280px;
+            padding: 30px;
+            background-color: #f8f9fa;
+            min-height: 100vh;
+        }
+
+        .content h2 {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 20px;
+            color: #4facfe;
+        }
+
+        /* Improved Card Styling for Pod Details */
+        .card {
+            margin-bottom: 20px;
+            border-radius: 10px;
+            padding: 20px;
+            background-color: #ffffff;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .card-header {
+            background-color: #f1f1f1;
+            font-weight: bold;
+            font-size: 18px;
+        }
+
+        .card-body {
+            font-size: 16px;
+        }
+
+        .card-body div {
+            margin-bottom: 10px;
+        }
+
+        .card-footer {
+            background-color: #f1f1f1;
+            text-align: center;
+            padding: 10px;
+            font-size: 14px;
+            color: #777;
+        }
+
+        /* Styling Labels */
+        .labels div {
+            margin-bottom: 5px;
+        }
+
+        #terminal-container {
+            height: 600px;
+            width: 130%;
+            background-color: #000; /* Optional: Give it a terminal-like background */
+            overflow: hidden;
+        }
+        
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 100%;
+                height: auto;
+                position: relative;
+            }
+
+            .content {
+                margin-left: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <h2>K8s Dashboard</h2>
+        <nav class="menu">
+            <a href="/" onclick="showHome()"><i class="fas fa-home"></i> Home</a>
+            
+            <!-- Collapsible Menu for Workloads -->
+            <a class="d-flex justify-content-between align-items-center" data-bs-toggle="collapse" href="#workload-menu" role="button" aria-expanded="false" aria-controls="workload-menu">
+                <span><i class="fas fa-th-list"></i> Workloads</span>
+                <i class="fas fa-chevron-down"></i>
+            </a>
+            <div class="collapse ms-3" id="workload-menu">
+                <a href="#" onclick="showPods()"><i class="fas fa-cube"></i> Pods</a>
+                <a href="#" onclick="showDeployment()"><i class="fas fa-box"></i> Deployments</a>
+                <a href="#" onclick="showDs()"><i class="fas fa-server"></i> DaemonSets</a>
+                <a href="#" onclick="showSts()"><i class="fas fa-database"></i> StatefulSets</a>
+                <a href="#" onclick="loadContent('ReplicaSets')"><i class="fas fa-clone"></i> ReplicaSets</a>
+            </div>
+
+            <a class="d-flex justify-content-between align-items-center" data-bs-toggle="collapse" href="#secret-menu" role="button" aria-expanded="false" aria-controls="workload-menu">
+                <span><i class="fas fa-th-list"></i>Secret & Configs</span>
+                <i class="fas fa-chevron-down"></i>
+            </a>
+            <div class="collapse ms-3" id="secret-menu">
+                <a href="#" onclick="showPods()"><i class="fas fa-cube"></i> Secrets</a>
+                <a href="#" onclick="showDeployment()"><i class="fas fa-box"></i> Configmaps</a>
+                <a href="#" onclick="showDs()"><i class="fas fa-server"></i> Events</a>
+                <a href="#" onclick="showDs()"><i class="fas fa-server"></i> PDB</a>
+                <a href="#" onclick="showDs()"><i class="fas fa-server"></i> HPA</a>
+            </div>
+
+            <a class="d-flex justify-content-between align-items-center" data-bs-toggle="collapse" href="#network-menu" role="button" aria-expanded="false" aria-controls="workload-menu">
+                <span><i class="fas fa-th-list"></i>Networking</span>
+                <i class="fas fa-chevron-down"></i>
+            </a>
+            <div class="collapse ms-3" id="network-menu">
+                <a href="#" onclick="showPods()"><i class="fas fa-cube"></i> Services</a>
+                <a href="#" onclick="showDeployment()"><i class="fas fa-box"></i> Ingress</a>
+                <a href="#" onclick="showDs()"><i class="fas fa-server"></i> Endpoints</a>
+                <a href="#" onclick="showDs()"><i class="fas fa-server"></i> NetPolicy</a>
+            </div>
+
+            <a class="d-flex justify-content-between align-items-center" data-bs-toggle="collapse" href="#storage-menu" role="button" aria-expanded="false" aria-controls="workload-menu">
+                <span><i class="fas fa-th-list"></i>Storage</span>
+                <i class="fas fa-chevron-down"></i>
+            </a>
+            <div class="collapse ms-3" id="storage-menu">
+                <a href="#" onclick="showPods()"><i class="fas fa-cube"></i> PVC</a>
+                <a href="#" onclick="showDeployment()"><i class="fas fa-box"></i> PV</a>
+                <a href="#" onclick="showDs()"><i class="fas fa-server"></i> StorageClass</a>
+            </div>
+            
+
+            <a class="d-flex justify-content-between align-items-center" data-bs-toggle="collapse" href="#accesscontrol-menu" role="button" aria-expanded="false" aria-controls="workload-menu">
+                <span><i class="fas fa-th-list"></i>Access Control</span>
+                <i class="fas fa-chevron-down"></i>
+            </a>
+            <div class="collapse ms-3" id="accesscontrol-menu">
+                <a href="#" onclick="showPods()"><i class="fas fa-cube"></i> Role</a>
+                <a href="#" onclick="showPods()"><i class="fas fa-cube"></i> RoleBinding</a>
+                <a href="#" onclick="showDeployment()"><i class="fas fa-box"></i> ClusterRole</a>
+                <a href="#" onclick="showDs()"><i class="fas fa-server"></i> ClusterRoleBinding</a>
+            </div>
+            <!-- Other Menu Items -->
+        </nav>
+  
+    </div>
+
+<!-- Main content area -->
+<main class="content">
+    <div class="pod-details">
+        <div class="d-flex justify-content-between align-items-center">
+            <!-- Pod Details Header -->
+             {% if pod_detail.metadata.name %}
+            <h3>Detail of Pod "{{ pod_detail.metadata.name }}" in namespace "{{ pod_detail.metadata.namespace }}"</h3>
+            {% elif more_details %}
+            <h3>Detail of Service "{{ more_details.serviceName }}{{describe_tasks}}" from cluster "{{ more_details.clusterArn }}"</h3>
+            {% else %}
+               {% for task_details in describe_tasks.tasks %}
+                   <h3>Detail of Task "{{task_details.taskArn}}"</h3>
+               {% endfor %}
+            {% endif %}
+            
+            <!-- Right-hand side controls -->
+            <div class="d-flex align-items-center">
+                <form action="{% url 'delete_pod' %}" method="POST">
+                    {% csrf_token %}
+                    <input type="hidden" name="pod_name" value="{{ pod_detail.metadata.name }}">
+                    <input type="hidden" name="pod_ns" value="{{ pod_detail.metadata.namespace }}">
+                     <!-- Delete Icon Button -->
+                    <button class="btn btn-danger btn-sm me-2" title="Delete Pod" type="submit">
+                    <i class="bi bi-trash"></i>
+                    </button>
+                </form>
+                <!-- Exec Icon Button -->
+                <button class="btn btn-primary btn-sm" title="Execute in Pod" 
+    onclick="openTerminal('{{ pod_detail.metadata.namespace }}', '{{ pod_detail.metadata.name }}', '{{ pod_detail.spec.containers.0.name }}')" 
+    data-bs-toggle="modal" data-bs-target="#terminalModal">
+    <i class="bi bi-terminal"></i>
+</button>
+
+
+            </div>
+        </div>
+            
+        </div>
+
+        &nbsp;
+        &nbsp;
+        {% if pod_detail.metadata.name %}
+        <!-- Tabs Navigation -->
+        <ul class="nav nav-pills" id="podTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <a class="nav-link active" id="overview-tab" data-bs-toggle="pill" href="#overview" role="tab" aria-controls="overview" aria-selected="true">Overview</a>
+            </li>
+            <li class="nav-item" role="presentation">
+                <a class="nav-link" id="logs-tab" data-bs-toggle="pill" href="#logs" role="tab" aria-controls="logs" aria-selected="false">Logs</a>
+            </li>
+            <li class="nav-item" role="presentation">
+                <a class="nav-link" id="events-tab" data-bs-toggle="pill" href="#events" role="tab" aria-controls="events" aria-selected="false">Events</a>
+            </li>
+            <li class="nav-item" role="presentation">
+                <a class="nav-link" id="yaml-tab" data-bs-toggle="pill" href="#yaml" role="tab" aria-controls="yaml" aria-selected="false">Yaml</a>
+            </li>
+        </ul>
+        {% elif describe_tasks %}
+        <ul class="nav nav-pills" id="podTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <a class="nav-link active" id="overview-tab" data-bs-toggle="pill" href="#overview" role="tab" aria-controls="overview" aria-selected="true">Overview</a>
+            </li>
+            <li class="nav-item" role="presentation">
+                <a class="nav-link" id="logs-tab" data-bs-toggle="pill" href="#logs" role="tab" aria-controls="logs" aria-selected="false">Logs</a>
+            </li>
+            <li class="nav-item" role="presentation">
+                <a class="nav-link" id="events-tab" data-bs-toggle="pill" href="#events" role="tab" aria-controls="events" aria-selected="false">Task Definition</a>
+            </li>
+        </ul>
+        {% else %}
+        <ul class="nav nav-pills" id="podTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <a class="nav-link active" id="overview-tab" data-bs-toggle="pill" href="#overview" role="tab" aria-controls="overview" aria-selected="true">Overview</a>
+            </li>
+            <li class="nav-item" role="presentation">
+                <a class="nav-link" id="logs-tab" data-bs-toggle="pill" href="#logs" role="tab" aria-controls="logs" aria-selected="false">Tasks</a>
+            </li>
+            <li class="nav-item" role="presentation">
+                <a class="nav-link" id="events-tab" data-bs-toggle="pill" href="#events" role="tab" aria-controls="events" aria-selected="false">Events</a>
+            </li>
+        </ul>
+        {% endif %}
+    </div>
+    
+
+&nbsp;
+<!-- Tab Content -->
+ {% if pod_detail.metadata.name %}
+<div class="tab-content" id="podTabsContent">
+    <!-- Overview Tab -->
+    <div class="tab-pane fade show active" id="overview" role="tabpanel" aria-labelledby="overview-tab">
+        <div class="card">
+            <div class="card-header">
+                General Information
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <!-- Left Column -->
+                    <div class="col-md-6">
+                        <div><strong>Name:</strong> {{ pod_detail.metadata.name }}</div>
+                        <div><strong>Namespace:</strong> {{ pod_detail.metadata.namespace }}</div>
+                        <div><strong>Age:</strong> {{ pod_detail.metadata.creation_timestamp }}</div>
+                        <div><strong>Status:</strong> {{ pod_detail.status.phase }}</div>
+                        <div><strong>Labels:</strong> </div>
+                        <ul>
+                            {% for volume_details, volumes_value in pod_detail.metadata.labels.items %}
+                            <li>
+                            {{ volume_details}} : {{volumes_value}}
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    <!-- Right Column -->
+                    <div class="col-md-6">
+                        <div><strong>PodIP:</strong> {{ pod_detail.status.pod_ip }}</div>
+                        <div><strong>Host IP:</strong> {{ pod_detail.status.host_ip }}</div>
+                        <div><strong>Node Name:</strong> {{ pod_detail.spec.node_name }}</div>
+                        <div><strong>Priority:</strong> {{ pod_detail.spec.priority_class_name }}</div>
+                        <div><strong>Scheduler Name:</strong> {{ pod_detail.spec.scheduler_name }}</div>
+                        <div><strong>Service Account Name:</strong> {{ pod_detail.spec.service_account_name }}</div>
+                        <div><strong>Volume:</strong> 
+                            <ul>
+                            {% for volume_details in pod_detail.spec.volumes %}
+                            <li>
+                            PVC: {{ volume_details.persistent_volume_claim.claim_name}} / Host Path: {{volume_details.host_path.path}}
+                            </li>
+                            {% endfor %}
+                        </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+<!-- Tab Content -->
+
+    <!-- Overview Tab -->
+    <div class="tab-pane fade show active" id="overview" role="tabpanel" aria-labelledby="overview-tab">
+        <div class="card">
+            <div class="card-header">
+                Containers
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <!-- Left Column -->
+                    <div class="col-md-6">
+                        <div><strong>Containers:</strong></div>
+                        <ul>
+                            {% for volume_details in pod_detail.spec.containers %}
+                            <li>{{ volume_details.name }}</li>
+                            {% endfor %}
+                        </ul>
+                        
+                        <div><strong>Images:</strong></div>
+                        <ul>
+                            {% for volume_details in pod_detail.spec.containers %}
+                            <li>{{ volume_details.image }}</li>
+                            {% endfor %}
+                        </ul>
+                        
+                        <div><strong>Image ID:</strong></div>
+                        <ul>
+                            {% for volume_details in image_id %}
+                            <li>{{ volume_details.image_id | default:"Not Available" }}</li>
+                            {% endfor %}
+                        </ul>
+
+                        <div><strong>Liveness Probe:</strong></div>
+                        <ul>
+                            {% for volume_details in pod_detail.spec.containers %}
+                            <li>{{ volume_details.liveness_probe.http_get | default:"Not Available" }}</li>
+                            {% endfor %}
+                        </ul>
+
+                        <div><strong>Readiness Probe:</strong></div>
+                        <ul>
+                            {% for volume_details in pod_detail.spec.containers %}
+                            <li>{{ volume_details.readiness_probe.http_get | default:"Not Available" }}</li>
+                            {% endfor %}
+                        </ul>
+
+                        <div><strong>DNS Policy:</strong></div>
+                        <ul>
+                            <li>{{ pod_detail.spec.dns_policy }}</li>
+                        </ul>
+                    </div>
+
+                    
+
+                    <!-- Right Column -->
+                    <div class="col-md-6">
+                        <div><strong>Restarts:</strong></div>
+                        <ul>
+                            {% for volume_details in image_id %}
+                            <li>
+                                Container <strong>{{ volume_details.name }}</strong> Restarted <strong>{{ volume_details.restart_count }}</strong> times.
+                            </li>
+                            {% endfor %}
+                        </ul>
+                        
+                        <div><strong>ContainerID:</strong></div>
+                        <ul>
+                            {% for volume_details in image_id %}
+                            <li>
+                                {{ volume_details.container_id }}'s Ready status is <strong>{{ volume_details.ready }}</strong> and Started status is <strong>{{ volume_details.started }}</strong>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                        
+                        <div><strong>Commands/Args:</strong></div>
+                        <ul>
+                            {% for volume_details in pod_detail.spec.containers %}
+                            <li>{{ volume_details.args | default:"Not Available" }}</li>
+                            {% endfor %}
+                        </ul>
+                        
+                        <div><strong>Resources:</strong></div>
+                        <ul>
+                            {% for volume_details in pod_detail.spec.containers %}
+                            <li>
+                                CPU Requests {{ volume_details.resources.requests.cpu | default:"Not Available" }} / Limits : {{ volume_details.resources.limits.cpu | default:"Not Available" }} <br>
+                                Memory Requests {{ volume_details.resources.requests.memory | default:"Not Available" }}  / Limits : {{ volume_details.resources.limits.memory | default:"Not Available" }}
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+        <!-- YAML Tab -->
+        <div class="tab-pane fade" id="yaml" role="tabpanel" aria-labelledby="yaml-tab">
+            <div class="card">
+                <div class="card-header">
+                    YAML
+                </div>
+                <div class="card-body">
+                    <pre>{{pod_yaml | default:"Not Available" }}</pre>
+                </div>
+            </div>
+        </div>
+                <!-- Logs Tab -->
+                <div class="tab-pane fade" id="logs" role="tabpanel" aria-labelledby="logs-tab">
+                    <div class="card">
+                        <div class="card-header">
+                            Logs
+                        </div>
+                        <div class="card-body">
+                            {% for log in logs %}
+                            <pre>{{log | default:"Not Available" }}</pre>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+
+
+                <!-- Events Tab -->
+                <div class="tab-pane fade" id="events" role="tabpanel" aria-labelledby="events-tab">
+                    <div class="card">
+                        <div class="card-header">
+                            Events
+                        </div>
+                        <div class="card-body">
+                            {% if read_events %}
+                            {% with found=False %}
+                            {% for details in read_events.items %}
+                            {% if details.regarding.name == pod_detail.metadata.name %}
+                            {% with found=True %}
+                            <pre>{{ details.reason }} : {{ details.note }}</pre>
+                            {% endwith %}
+                            {% endif %}
+                            {% endfor %}
+                            {% if not found %}
+                            <pre>No More Events found for pod {{ pod_detail.metadata.name }}</pre>
+                            {% endif %}
+                            {% endwith %}
+                            {% else %}
+                            <pre>No Events found for pod {{ pod_detail.metadata.name }}</pre>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+<!-- Tab Content -->
+{% elif describe_tasks %}
+<div class="tab-content" id="podTabsContent">
+    <!-- Overview Tab -->
+    <div class="tab-pane fade show active" id="overview" role="tabpanel" aria-labelledby="overview-tab">
+        <div class="card">
+            <div class="card-header">
+                General Information
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <!-- Left Column -->
+                    <div class="col-md-6">
+                        {% for task_details in describe_tasks.tasks %}
+                        <div><strong>Task Arn:</strong> {{ task_details.taskArn }}</div>
+                        <div><strong>Task Arn:</strong> {{ task_details.roleArn }}</div>
+                        <div><strong>Availablity Zone:</strong> {{ task_details.availabilityZone }}</div>
+                        {% for arch in task_details.attributes  %}
+                        {% if arch.name == 'ecs.cpu-architecture' %}
+                        <div><strong>CPU Architecture:</strong> {{ arch.value }}</div>
+                        {% endif %}
+                        {% endfor %}
+                        <div><strong>ClusterArn:</strong> {{ task_details.clusterArn }}</div>
+                        <div><strong>Launch Type:</strong> {{ task_details.launchType }} </div>
+                        <div><strong>Task Definition:</strong> {{ task_details.taskDefinitionArn }} </div>
+                        <div><strong>Ephmeral Storage:</strong> {{ task_details.ephemeralStorage.sizeInGiB }} GB </div>
+                        <div><strong>ECS Execute:</strong> {{ task_details.enableExecuteCommand }} </div>
+                        <div><strong>Service:</strong> {{ task_details.group }} </div>
+                     
+                    </div>
+                    <!-- Right Column -->
+                    <div class="col-md-6">
+                        <div><strong>Platform Version:</strong> {{ task_details.platformVersion }} </div>
+                        <div><strong>Platform family:</strong> {{ task_details.platformFamily }}</div>
+                        <div><strong>Last Status:</strong> {{ task_details.lastStatus }}</div>
+                        <div><strong>Health Status:</strong> {{ task_details.healthStatus }}</div>
+                        {% for task_further_details in task_details.attachments %}
+                        {% for data in task_further_details.details%}
+                        {% if data.name == 'subnetId' %}
+                        <div><strong>Subnet Id:</strong> {{ data.value }}</div>
+                        {% endif %}
+                        {% if data.name == 'privateIPv4Address' %}
+                        <div><strong>Private Ip:</strong> {{ data.value }}</div>
+                        {% endif %}
+                        {% if data.name == 'networkInterfaceId' %}
+                        <div><strong>ENI:</strong> {{ data.value }}</div>
+                        {% endif %}
+                        {% endfor %}
+                        {% endfor %}
+                        <div><strong>Started At:</strong> {{ task_details.startedAt }}</div>
+                        <div><strong>Task Resource:</strong></div>
+                        <ul>
+                            <li>CPU: {{task_details.cpu }}</li>
+                        </ul>
+                        <ul>
+                            <li>Memory: {{task_details.memory }}</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+<!-- Tab Content -->
+
+    <!-- Overview Tab -->
+    <div class="tab-pane fade show active" id="overview" role="tabpanel" aria-labelledby="overview-tab">
+        <div class="card">
+            <div class="card-header">
+                Containers
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <!-- Left Column -->
+                    <div class="col-md-6">
+                        <div><strong>Containers:</strong></div>
+                        <ul>
+                            {% for task_container in task_details.containers %}
+                            <li>{{task_container.name }} is {{task_container.lastStatus}}</li>
+                            {% endfor %}
+                        </ul>
+                        
+                        <div><strong>Images:</strong></div>
+                        <ul>
+                            {% for task_container in task_details.containers %}
+                            <li>{{ task_container.image }}</li>
+                            {% endfor %}
+                        </ul>
+                        
+                        <div><strong>Image Digest:</strong></div>
+                        <ul>
+                            {% for task_container in task_details.containers %}
+                            <li>{{ task_container.imageDigest }}</li>
+                            {% endfor %}
+                        </ul>
+
+                        <div><strong>Container Resources:</strong></div>
+                        <ul>
+                            {% for task_container in task_details.containers %}
+                            <li>Container {{task_container.name }} have "{{ task_container.cpu | default:"N/A"}}" cpu defined.</li>
+                            <li>Container {{task_container.name }} have "{{ task_container.memory | default:"N/A"}}" hard and "{{ task_container.memoryReservation | default:"N/A"}}" soft memory defined.</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+
+                    
+
+                    <!-- Right Column -->
+                    <div class="col-md-6">
+                        <div><strong>Environment Variables:</strong></div>
+                        <ul>
+                            {% for task_container in task_details.overrides.containerOverrides %}
+                            {% for env in task_container.environment %}
+                            <li>
+                                {{ env.name }} : {{ env.value }}.
+                            </li>
+                            {% endfor %}
+                            {% endfor %}
+                        </ul>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+        <!-- YAML Tab -->
+        <div class="tab-pane fade" id="yaml" role="tabpanel" aria-labelledby="yaml-tab">
+            <div class="card">
+                <div class="card-header">
+                    YAML
+                </div>
+                <div class="card-body">
+                    <pre>{{pod_yaml | default:"Not Available" }}</pre>
+                </div>
+            </div>
+        </div>
+                <!-- Logs Tab -->
+                <div class="tab-pane fade" id="logs" role="tabpanel" aria-labelledby="logs-tab">
+                    <div class="card">
+                        <div class="card-header">
+                            Logs
+                        </div>
+                        <div class="card-body">
+                            {% for log in logs.events %}
+                            <pre>{{log.message | default:"Not Available" }}</pre>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+
+
+                <!-- Events Tab -->
+                <div class="tab-pane fade" id="events" role="tabpanel" aria-labelledby="events-tab">
+                    <div class="card">
+                        <div class="card-header">
+                            Task Definition
+                        </div>
+                        <div class="card-body">
+                            <pre>{{ describe_td }}</pre>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+
+{% else %}
+
+<div class="tab-content" id="podTabsContent">
+    <!-- Overview Tab -->
+    <div class="tab-pane fade show active" id="overview" role="tabpanel" aria-labelledby="overview-tab">
+        <div class="card">
+            <div class="card-header">
+                General Information
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <!-- Left Column -->
+                    <div class="col-md-6">
+                        <div><strong>Service Name:</strong> {{ more_details.serviceName }}</div>
+                        <div><strong>Cluster:</strong> {{ more_details.clusterArn }}</div>
+                        <div><strong>Status:</strong> {{ more_details.status }}</div>
+                        <div><strong>Launch Type:</strong> {{ more_details.launchType }}</div>
+                        <div><strong>Platform Version:</strong> {{ more_details.platformVersion}}</div>
+                        
+                        <div><strong>Network Configuration:</strong> {{ more_details.networkConfiguration}}</div>
+                    </div>
+                    <!-- Right Column -->
+                    <div class="col-md-6">
+                        <div><strong>Platform Family:</strong> {{ more_details.platformFamily }}</div>
+                        <div><strong>TaskDefinition:</strong> {{ more_details.taskDefinition }}</div>
+                        <div><strong>Running Count:</strong> {{ more_details.runningCount }}</div>
+                        <div><strong>Desired Count:</strong> {{ more_details.desiredCount }}</div>
+                        <div><strong>Pending Count:</strong> {{ more_details.pendingCount }}</div>
+                        <div><strong>Load Balancers:</strong> {{ more_details.loadBalancers | default:"Not Defined" }}</div>
+                        <div><strong>Deployment Configuration:</strong>  {{more_details.deploymentConfiguration}}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+<!-- Tab Content -->
+
+    <!-- Overview Tab -->
+    
+</div>
+
+        <!-- YAML Tab -->
+        <div class="tab-pane fade" id="yaml" role="tabpanel" aria-labelledby="yaml-tab">
+            <div class="card">
+                <div class="card-header">
+                    YAML
+                </div>
+                <div class="card-body">
+                    <pre>{{pod_yaml | default:"Not Available" }}</pre>
+                </div>
+            </div>
+        </div>
+                <!-- Logs Tab -->
+                <div class="tab-pane fade" id="logs" role="tabpanel" aria-labelledby="logs-tab">
+                    <div class="card">
+                        <div class="card-header">
+                            Tasks
+                        </div>
+                        {% load custom_filters %}
+                        <div class="card-body">
+                            {% for task in list_tasks.taskArns %}
+                            <pre><a href="{% url 'describe_task' cluster=more_details.clusterArn task=task %}">{{task}}</pre></a>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+
+
+                <!-- Events Tab -->
+                <div class="tab-pane fade" id="events" role="tabpanel" aria-labelledby="events-tab">
+                    <div class="card">
+                        <div class="card-header">
+                            Events
+                        </div>
+                        <div class="card-body">
+                            {% for message in more_details.events  %}
+                            <pre>{{ message.createdAt }} : {{ message.message }}</pre>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+{% endif %}
+
+
+    <!-- Bootstrap JS and dependencies -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.min.js"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.min.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/css/bootstrap.min.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"></script>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
+
+<link href="https://cdn.jsdelivr.net/npm/xterm/css/xterm.css" rel="stylesheet" />
+<script src="https://cdn.jsdelivr.net/npm/xterm/lib/xterm.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/xterm/css/xterm.css" />
+<script src="https://cdn.jsdelivr.net/npm/xterm/lib/xterm.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+
+<div class="modal fade" id="terminalModal" tabindex="-1" aria-labelledby="terminalModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="terminalModalLabel">Pod Terminal</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" onclick="closeTerminal()"></button>
+            </div>
+            <div class="modal-header">
+            <h8 class="modal-title" id="terminalModalLabel">This is Beta Web Terminal and still evolving, if you're facing any issue please contact Aanand Kumar</h8>
+            </div>
+            <div class="modal-body">
+                <!-- Terminal container -->
+                <div id="terminal-container" style="height: 600px; width: 100%; background-color: black; color: white;"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+                <script>
+                    let socket;
+                    let terminal;
+                    let inputBuffer = ""; // Buffer to store user input until Enter is pressed
+                    const prompt = "aanand@{{ pod_detail.metadata.name }} :% "; // Dynamically injected prompt
+                
+                    function openTerminal(namespace, podName, containerName) {
+                        // Initialize xterm.js (Assumes xterm.js is loaded in your page)
+                        terminal = new Terminal();
+                        terminal.open(document.getElementById("terminal-container"));
+                        terminal.write("Connecting to Pod....{{ pod_detail.metadata.name }}\r\n");
+                
+                        // Open WebSocket connection
+                        const wsUrl = `ws://${window.location.host}/ws/exec/${namespace}/${podName}/${containerName}/`;
+                        socket = new WebSocket(wsUrl);
+                
+                        socket.onopen = () => {
+                            terminal.write("Connected to Pod.\r\n");
+                            showPrompt();
+                        };
+                
+                        socket.onmessage = (event) => {
+                            terminal.write(event.data);
+                            showPrompt(); // Display prompt after output
+                        };
+                
+                        socket.onerror = (error) => {
+                            terminal.write(`Error: ${error.message}\r\n`);
+                        };
+                
+                        socket.onclose = () => {
+                            terminal.write("\r\nDisconnected from Pod.\r\n");
+                        };
+                
+                        // Handle user input and buffer until Enter is pressed
+                        terminal.onData((data) => {
+                            if (data === '\r') { // Enter key
+                                socket.send(inputBuffer + '\n'); // Send the buffered command with newline
+                                inputBuffer = ""; // Clear the buffer
+                                terminal.write('\r\n'); // Move to the next line in the terminal
+                            } else if (data === '\u007F') { // Backspace key
+                                if (inputBuffer.length > 0) {
+                                    inputBuffer = inputBuffer.slice(0, -1); // Remove the last character
+                                    terminal.write('\b \b'); // Erase the character visually in the terminal
+                                }
+                            } else {
+                                inputBuffer += data; // Add character to buffer
+                                terminal.write(data); // Display character in the terminal
+                            }
+                        });
+                    }
+                
+                    function showPrompt() {
+                        terminal.write(prompt); // Display the prompt
+                    }
+                
+                    function closeTerminal() {
+                        if (socket) {
+                            socket.close();
+                        }
+                    }
+                </script>                
+</body>
+</html>
+    

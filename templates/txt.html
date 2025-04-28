@@ -1,0 +1,22 @@
+<div class="d-flex align-items-center">
+    <!-- Search Bar -->
+    <div class="me-3">
+        <input type="text" id="search-bar" class="form-control form-control-sm" placeholder="Search Objects...">
+    </div>
+    
+    <form action="{% url 'delete_pod' %}" method="POST">
+        {% csrf_token %}
+        <input type="hidden" name="pod_name" value="{{ pod_detail.metadata.name }}">
+        <input type="hidden" name="pod_ns" value="{{ pod_detail.metadata.namespace }}">
+         <!-- Delete Icon Button -->
+        <button class="btn btn-danger btn-sm me-2" title="Delete Pod" type="submit">
+        <i class="bi bi-trash"></i>
+        </button>
+    </form>
+   
+
+    <!-- Exec Icon Button -->
+    <button class="btn btn-primary btn-sm" title="Execute in Pod" onclick="openTerminal('{{ pod_detail.metadata.namespace }}', '{{ pod_detail.metadata.name }}', '{{ pod_detail.spec.containers.0.name }}'">
+        <i class="bi bi-terminal"></i>
+    </button>
+</div>

@@ -1,0 +1,916 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kubesphere</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+
+    <style>
+        body {
+            font-family: 'Roboto', Arial, sans-serif;
+            background-color: #f8f9fa;
+            font-size: 14px;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 280px;
+            height: 100vh;
+            background: linear-gradient(135deg, #4facfe, #00f2fe);
+            color: white;
+            padding: 20px;
+            position: fixed;
+        }
+
+        .sidebar h2 {
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 22px;
+            font-weight: bold;
+            color: #ffffff;
+        }
+
+        .menu a {
+            text-decoration: none;
+            font-size: 14px;
+            color: white;
+            padding: 10px 20px;
+            margin: 10px 0;
+            display: block;
+            border-radius: 8px;
+            transition: all 0.3s ease-in-out;
+        }
+
+        /* Add styles for table cells to handle long text */
+table th,
+table td {
+    white-space: nowrap; /* Prevent text from wrapping by default */
+    overflow: hidden;    /* Hide overflow */
+    text-overflow: ellipsis; /* Add ellipsis for overflowing text */
+    max-width: 240px;    /* Set a maximum width for cells */
+}
+
+table td:nth-child(5) { /* Specifically target the "Node" column */
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 200px; /* Adjust as necessary */
+}
+
+/* Ensure the table is responsive */
+.table-responsive {
+    overflow-x: auto;
+    white-space: nowrap;
+}
+
+
+        .menu a:hover {
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .menu a i {
+            margin-right: 10px;
+        }
+
+        /* Main Content */
+        .content {
+            margin-left: 280px;
+            padding: 30px;
+            background-color: #f8f9fa;
+            min-height: 100vh;
+        }
+
+        .content h2 {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 20px;
+            color: #4facfe;
+        }
+
+       
+        /* Updated styles for responsive dashboard cards */
+        .dashboard-card {
+            border-radius: 10px;
+            padding: 20px;
+            color: white;
+            text-align: center;
+            font-size: 16px;
+            font-weight: bold;
+            transition: transform 0.2s ease-in-out;
+        }
+    
+        .dashboard-card:hover {
+            transform: scale(1.05);
+        }
+    
+        .card-pods {
+            background-color: #4caf50;
+        }
+    
+        .card-deployments {
+            background-color: #2196f3;
+        }
+    
+        .card-daemonsets {
+            background-color: #ff9800;
+        }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            color: #777;
+            font-size: 13px;
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 100%;
+                height: auto;
+                position: relative;
+            }
+
+            .content {
+                margin-left: 0;
+            }
+        }
+        .cluster-selection {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            right: 20px;
+        }
+        .cluster-selection h5 {
+            margin-bottom: 10px;
+            font-size: 14px;
+            text-align: center;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <h2>Kubesphere</h2>
+        <nav class="menu">
+            <a href="#" onclick="showHome()"><i class="fas fa-home"></i> Home</a>
+            
+            <!-- Collapsible Menu for Workloads -->
+            <a class="d-flex justify-content-between align-items-center" data-bs-toggle="collapse" href="#workload-menu" role="button" aria-expanded="false" aria-controls="workload-menu">
+                <span><i class="fas fa-th-list"></i> Workloads</span>
+                <i class="fas fa-chevron-down"></i>
+            </a>
+            <div class="collapse ms-3" id="workload-menu">
+                <a href="#" onclick="showPods()"><i class="fas fa-cube"></i> Pods</a>
+                <a href="#" onclick="showDeployment()"><i class="fas fa-box"></i> Deployments</a>
+                <a href="#" onclick="showDs()"><i class="fas fa-server"></i> DaemonSets</a>
+                <a href="#" onclick="showSts()"><i class="fas fa-database"></i> StatefulSets</a>
+                <a href="#" onclick="showRs()"><i class="fas fa-clone"></i> ReplicaSets</a>
+            </div>
+
+            <a class="d-flex justify-content-between align-items-center" data-bs-toggle="collapse" href="#secret-menu" role="button" aria-expanded="false" aria-controls="workload-menu">
+                <span><i class="fas fa-th-list"></i>Secret & Configs</span>
+                <i class="fas fa-chevron-down"></i>
+            </a>
+            <div class="collapse ms-3" id="secret-menu">
+                <a href="#" onclick="showPods()"><i class="fas fa-cube"></i> Secrets</a>
+                <a href="#" onclick="showDeployment()"><i class="fas fa-box"></i> Configmaps</a>
+                <a href="#" onclick="showDs()"><i class="fas fa-server"></i> Events</a>
+                <a href="#" onclick="showDs()"><i class="fas fa-server"></i> PDB</a>
+                <a href="#" onclick="showDs()"><i class="fas fa-server"></i> HPA</a>
+            </div>
+
+            <a class="d-flex justify-content-between align-items-center" data-bs-toggle="collapse" href="#network-menu" role="button" aria-expanded="false" aria-controls="workload-menu">
+                <span><i class="fas fa-th-list"></i>Networking</span>
+                <i class="fas fa-chevron-down"></i>
+            </a>
+            <div class="collapse ms-3" id="network-menu">
+                <a href="#" onclick="showPods()"><i class="fas fa-cube"></i> Services</a>
+                <a href="#" onclick="showDeployment()"><i class="fas fa-box"></i> Ingress</a>
+                <a href="#" onclick="showDs()"><i class="fas fa-server"></i> Endpoints</a>
+                <a href="#" onclick="showDs()"><i class="fas fa-server"></i> NetPolicy</a>
+            </div>
+
+            <a class="d-flex justify-content-between align-items-center" data-bs-toggle="collapse" href="#storage-menu" role="button" aria-expanded="false" aria-controls="workload-menu">
+                <span><i class="fas fa-th-list"></i>Storage</span>
+                <i class="fas fa-chevron-down"></i>
+            </a>
+            <div class="collapse ms-3" id="storage-menu">
+                <a href="#" onclick="showPods()"><i class="fas fa-cube"></i> PVC</a>
+                <a href="#" onclick="showDeployment()"><i class="fas fa-box"></i> PV</a>
+                <a href="#" onclick="showDs()"><i class="fas fa-server"></i> StorageClass</a>
+            </div>
+            
+
+            <a class="d-flex justify-content-between align-items-center" data-bs-toggle="collapse" href="#accesscontrol-menu" role="button" aria-expanded="false" aria-controls="workload-menu">
+                <span><i class="fas fa-th-list"></i>Access Control</span>
+                <i class="fas fa-chevron-down"></i>
+            </a>
+            <div class="collapse ms-3" id="accesscontrol-menu">
+                <a href="#" onclick="showPods()"><i class="fas fa-cube"></i> Role</a>
+                <a href="#" onclick="showPods()"><i class="fas fa-cube"></i> RoleBinding</a>
+                <a href="#" onclick="showDeployment()"><i class="fas fa-box"></i> ClusterRole</a>
+                <a href="#" onclick="showDs()"><i class="fas fa-server"></i> ClusterRoleBinding</a>
+            </div>
+            <!-- Other Menu Items -->
+        </nav>
+            <!-- Cluster Selection Menu -->
+            <div class="cluster-selection mt-5 pt-4 border-top">
+                <h5 class="text-white">Cluster Selection</h5>
+                <form action="{% url 'update_cluster'  %}" method="POST">
+                    {% csrf_token %}
+                    <select id="cluster" name="cluster" class="form-select mt-2">
+                        {% for cluster in list %}
+                        <option value="{{ cluster.cluster_name }}|{{ cluster.cluster_region }}|{{ cluster.cluster_region_svc|default:"Azure" }}" name="cluster_details">{{ cluster.cluster_name }} - {{cluster.cluster_region}} - {{cluster.cluster_region_svc}}</option>
+                        {% endfor %}
+                    </select>
+                    <button class="btn btn-light btn-sm mt-3 w-100" type="submit">Select Cluster</button>
+                    <input type="hidden" name="pod_name" value="{{ pod.metadata.name }}">
+                    <input type="hidden" name="pod_ns" value="{{ pod.metadata.namespace }}">
+                </form>
+            </div>
+    </div>
+    
+
+    <!-- Main Content -->
+    <div class="content">
+        <!-- Home Section -->
+        <div id="home-section">
+            {% if config %}
+            <h2>Welcome to "{{config}}" cluster in AWS's "{{region}}" region.</h2>
+            {% else %}
+            <h2>Welcome to "{{az_cluster}}" cluster in Azure's "{{az_region}}" region.</h2>
+            {% endif %}
+                <!-- Display messages -->
+    {% if messages %}
+    <div class="alert-container">
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }}" role="alert">
+            {{ message }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    {% if config %}
+            <p>Select an item from the left menu to view details, or explore the {{config}}'s cluster summary below from all namespaces.</p>
+            {% else %}
+            <p>Select an item from the left menu to view details, or explore the {{az_cluster}}'s cluster summary below from all namespaces.</p>
+            {% endif %}
+            <div class="dashboard-cards row g-3 mt-3">
+                <div class="col-sm-6 col-md-4 col-lg-3">
+                    <div class="dashboard-card card-daemonsets" onclick="showPods()">
+                        <i class="fas fa-cube fa-2x"></i>
+                        <div>Pods</div>
+                        <div>{{ pods.items| length }}</div>
+                    </div>
+                </div>
+                <div class="col-sm-6 col-md-4 col-lg-3">
+                    <div class="dashboard-card card-deployments" onclick="showDeployment()">
+                        <i class="fas fa-box fa-2x"></i>
+                        <div>Deployments</div>
+                        <div>{{ moka.items|length }}</div>
+                    </div>
+                </div>
+                <div class="col-sm-6 col-md-4 col-lg-3">
+                    <div class="dashboard-card card-daemonsets" onclick="showDs()">
+                        <i class="fas fa-server fa-2x"></i>
+                        <div>DaemonSets</div>
+                        <div>{{ my_ds.items|length }}</div>
+                    </div>
+                </div>
+                <div class="col-sm-6 col-md-4 col-lg-3">
+                    <div class="dashboard-card card-deployments" onclick="showSts()">
+                        <i class="fas fa-box fa-2x"></i>
+                        <div>StatefulSets</div>
+                        <div>{{ my_sts.items|length }}</div>
+                    </div>
+                </div>
+                <!-- Repeat similar structure for additional cards -->
+                <div class="col-sm-6 col-md-4 col-lg-3">
+                    <div class="dashboard-card card-daemonsets" onclick="showNodes()">
+                        <i class="fas fa-cube fa-2x"></i>
+                        <div>Nodes</div>
+                        <div>{{ my_nodes.items|length }}</div>
+                    </div>
+                </div>
+                <div class="col-sm-6 col-md-4 col-lg-3">
+                    <div class="dashboard-card card-deployments" onclick="eventSection()">
+                        <i class="fas fa-cube fa-2x"></i>
+                        <div>Total Events</div>
+                        <div>{{ mata.items|length }}</div>
+                    </div>
+                </div>
+                <div class="col-sm-6 col-md-4 col-lg-3">
+                    <div class="dashboard-card card-daemonsets" onclick="cmSection()">
+                        <i class="fas fa-cube fa-2x"></i>
+                        <div>ConfigMap</div>
+                        <div>{{ my_configmap.items|length }}</div>
+                    </div>
+                </div>
+                <div class="col-sm-6 col-md-4 col-lg-3">
+                    <div class="dashboard-card card-deployments" onclick="SecretSection()">
+                        <i class="fas fa-cube fa-2x"></i>
+                        <div>Secrets</div>
+                        <div>{{ my_secret.items|length }}</div>
+                    </div>
+                </div>
+                <div class="col-sm-6 col-md-4 col-lg-3">
+                    <div class="dashboard-card card-deployments" onclick="PvcSection()">
+                        <i class="fas fa-cube fa-2x"></i>
+                        <div>PVC</div>
+                        <div>{{ my_pvc.items|length }}</div>
+                    </div>
+                </div>
+                <div class="col-sm-6 col-md-4 col-lg-3">
+                    <div class="dashboard-card card-daemonsets" onclick="PvSection()">
+                        <i class="fas fa-cube fa-2x"></i>
+                        <div>PV</div>
+                        <div>{{ my_pv.items|length }}</div>
+                    </div>
+                </div>
+                <div class="col-sm-6 col-md-4 col-lg-3">
+                    <div class="dashboard-card card-deployments" onclick="showSts()">
+                        <i class="fas fa-cube fa-2x"></i>
+                        <div>Services</div>
+                        <div>{{ total_svc.items|length }}</div>
+                    </div>
+                </div>
+                <div class="col-sm-6 col-md-4 col-lg-3">
+                    <div class="dashboard-card card-daemonsets" onclick="showSts()">
+                        <i class="fas fa-cube fa-2x"></i>
+                        <div>NameSpaces</div>
+                        <div>{{ total_ns.items|length }}</div>
+                    </div>
+                </div>
+                <div class="col-sm-6 col-md-4 col-lg-3">
+                    <div class="dashboard-card card-deployments" onclick="showSts()">
+                        <i class="fas fa-cube fa-2x"></i>
+                        <div>Ingress</div>
+                        <div>{{ total_ingress.items|length }}</div>
+                    </div>
+                </div>
+                <div class="col-sm-6 col-md-4 col-lg-3">
+                    <div class="dashboard-card card-daemonsets" onclick="showSts()">
+                        <i class="fas fa-cube fa-2x"></i>
+                        <div>Jobs</div>
+                        <div>{{ total_job.items|length }}</div>
+                    </div>
+                </div>
+                <div class="col-sm-6 col-md-4 col-lg-3">
+                    <div class="dashboard-card card-deployments" onclick="showSts()">
+                        <i class="fas fa-cube fa-2x"></i>
+                        <div>Cron Jobs</div>
+                        <div>{{ total_cjobs.items|length }}</div>
+                    </div>
+                </div>
+                <div class="col-sm-6 col-md-4 col-lg-3">
+                    <div class="dashboard-card card-daemonsets" onclick="showSts()">
+                        <i class="fas fa-cube fa-2x"></i>
+                        <div>HPA</div>
+                        <div>{{ asg.items|length }}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Pods Section -->
+        <div id="pods-section" class="mt-4" style="display: none;">
+            <h2>Pods</h2>
+            <div class="table-responsive">
+                <table class="table table-bordered table-hover align-middle">
+                    <thead>
+                        <tr>
+                            <th>Pod Name</th>
+                            <th>Status</th>
+                            <th>Time</th>
+                            <th>Namespace</th>
+                            <th>Node</th>
+                            <th>Pod IP</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for pod in pods.items %}
+                        <tr>
+                           <input type="hidden" name="pod_name" value="{{ pod.metadata.name }}">
+                           <input type="hidden" name="pod_ns" value="{{ pod.metadata.namespace }}">
+                           <td><a href="{% url 'details' pod.metadata.namespace pod.metadata.name %}">{{pod.metadata.name}}</td></a>
+                            <td>{{ pod.status.phase }}</td>
+                            <td>{{ pod.metadata.creation_timestamp }}</td>
+                            <td>{{ pod.metadata.namespace }}</td>
+                            {% if pod.spec.node_name is None %}
+                                {% for events in mata.items %}
+                                     {% if events.regarding.name == pod.metadata.name %}
+                            <td>{{events.reason}} : {{ events.note }} 😭😭</td>
+                                     {% endif %}
+                                {% endfor %}
+                            {% else %}
+                            <td>{{ pod.spec.node_name }}</td>
+                            {% endif %}
+                            {% if pod.status.pod_ip is None %}
+                                {% for events in mata.items  %}
+                                     {% if events.regarding.name == pod.metadata.name %}
+                                     <td>{{events.reason | slice:":20" }} 😭😭</td>
+                                     {{ "<!--" }}
+                                     {% endif %} 
+                                   {% endfor %}     
+                                   {{ "-->" }}
+                            {% else %}
+                            <td>{{ pod.status.pod_ip }}</td>
+                            {% endif %}
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Deployment Section -->
+        <div id="deployment-section" class="mt-4" style="display: none;">
+            <h2>Deployments</h2>
+            <div class="table-responsive">
+                <table class="table table-bordered table-hover align-middle">
+                    <thead>
+                        <tr>
+                            <th>Deployment Name</th>
+                            <th>Namespace</th>
+                            <th>Replicas</th>
+                            <th>Restart/Delete</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for deploy in moka.items %}
+                        <tr>
+                            <td>{{ deploy.metadata.name }}</td>
+                            <td>{{ deploy.metadata.namespace }}</td>
+                            {% if deploy.status.available_replicas == None %}
+                            <td>{{ deploy.spec.replicas }}/0 😭😭</td>
+                            {% else %}
+                            <td>{{ deploy.spec.replicas }}/{{ deploy.status.available_replicas }}</td>
+                            {% endif %}
+                            <td class="d-flex align-items-center gap-2">
+                                <!-- Restart Button (Opens Modal) -->
+                                <button class="btn btn-outline-primary btn-sm rounded-circle d-flex align-items-center justify-content-center"
+                                    type="button" title="Restart" data-bs-toggle="modal" data-bs-target="#confirmRestartModal"
+                                    style="width: 26px; height: 26px;">
+                                    <i class="fas fa-sync-alt"></i>
+                                </button>
+                            
+                                <!-- Restart Hidden Form -->
+                                <form id="restartForm" action="{% url 'deploy_re' %}" method="POST">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="deployment_name" value="{{ deploy.metadata.name }}">
+                                    <input type="hidden" name="deployment_ns" value="{{ deploy.metadata.namespace }}">
+                                </form>
+                            
+                                <!-- Delete Button (Opens Modal) -->
+                                <button class="btn btn-outline-danger btn-sm rounded-circle d-flex align-items-center justify-content-center"
+                                    type="button" title="Delete" data-bs-toggle="modal" data-bs-target="#confirmDeleteModal"
+                                    style="width: 26px; height: 26px;">
+                                    <i class="fas fa-trash-alt"></i>
+                                </button>
+                            
+                                <!-- Delete Hidden Form -->
+                                <form id="deleteForm" action="{% url 'deploy_re' %}" method="POST">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="deployment_name" value="{{ deploy.metadata.name }}">
+                                    <input type="hidden" name="deployment_ns" value="{{ deploy.metadata.namespace }}">
+                                </form>
+                            </td>                            
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Restart Confirmation Modal -->
+<div class="modal fade" id="confirmRestartModal" tabindex="-1" aria-labelledby="confirmRestartLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="confirmRestartLabel">Confirm Restart</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                Are you sure you want to restart this deployment?
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="confirmRestartBtn">Yes, Restart</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="confirmDeleteModal" tabindex="-1" aria-labelledby="confirmDeleteLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="confirmDeleteLabel">Confirm Delete</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                Are you sure you want to delete this deployment?
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger" id="confirmDeleteBtn">Yes, Delete</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+        <!-- DaemonSets Section -->
+        <div id="ds-section" class="mt-4" style="display: none;">
+            <h2>DaemonSets</h2>
+            <div class="table-responsive">
+                <table class="table table-bordered table-hover align-middle">
+                    <thead>
+                        <tr>
+                            <th>DaemonSet Name</th>
+                            <th>Namespace</th>
+                            <th>Replicas</th>
+                            <th>Restart/Delete</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for deploy in my_ds.items %}
+                        <tr>
+                            <td>{{ deploy.metadata.name }}</td>
+                            <td>{{ deploy.metadata.namespace }}</td>
+                            <td>{{ deploy.spec.replicas }}</td>
+                            <td>
+                                <form action="{% url 'restart_ds' %}" method="POST" >
+                                    {% csrf_token %}
+                                    <input type="hidden" name="deployment_name" value="{{ deploy.metadata.name }}">
+                                    <input type="hidden" name="deployment_ns" value="{{ deploy.metadata.namespace }}">
+                                    <button class="btn btn-light btn-sm mt-3 w-100" type="submit">Restart</button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+                <!-- ReplicaSets Section -->
+                <div id="rs-section" class="mt-4" style="display: none;">
+                    <h2>ReplicaSets</h2>
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-hover align-middle">
+                            <thead>
+                                <tr>
+                                    <th>ReplicaSet Name</th>
+                                    <th>Namespace</th>
+                                    <th>Desired/Current</th>
+                                    <th>Restart/Delete</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for deploy in total_rs.items %}
+                                <tr>
+                                    <td>{{ deploy.metadata.name }}</td>
+                                    <td>{{ deploy.metadata.namespace }}</td>
+                                    <td>{{ deploy.spec.replicas }}/{{ deploy.status.replicas }}</td>
+                                    <td>
+                                        <form action="{% url 'restart_ds' %}" method="POST" >
+                                            {% csrf_token %}
+                                            <input type="hidden" name="deployment_name" value="{{ deploy.metadata.name }}">
+                                            <input type="hidden" name="deployment_ns" value="{{ deploy.metadata.namespace }}">
+                                            <button class="btn btn-light btn-sm mt-3 w-100" type="submit">Delete</button>
+                                        </form>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+
+                <!-- ConfigMap Section -->
+                <div id="cm-section" class="mt-4" style="display: none;">
+                    <h2>ConfigMap</h2>
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-hover align-middle">
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Namespace</th>
+                                    <th>Data</th>
+                                    <th>Delete</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for deploy in my_configmap.items %}
+                                <tr>
+                                    <td>{{ deploy.metadata.name }}</td>
+                                    <td>{{ deploy.metadata.namespace }}</td>
+                                    <td>{{ deploy.data | length }}</td>
+                                    <td>
+                                        <form action="{% url 'restart_ds' %}" method="POST" >
+                                            {% csrf_token %}
+                                            <input type="hidden" name="deployment_name" value="{{ deploy.metadata.name }}">
+                                            <input type="hidden" name="deployment_ns" value="{{ deploy.metadata.namespace }}">
+                                            <button class="btn btn-light btn-sm mt-3 w-100" type="submit">Delete</button>
+                                        </form>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Secret Section -->
+                <div id="secret-section" class="mt-4" style="display: none;">
+                    <h2>Secrets</h2>
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-hover align-middle">
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Namespace</th>
+                                    <th>Data</th>
+                                    <th>Type</th>
+                                    <th>Delete</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for deploy in my_secret.items %}
+                                <tr>
+                                    <td>{{ deploy.metadata.name }}</td>
+                                    <td>{{ deploy.metadata.namespace }}</td>
+                                    <td>{{ deploy.data | length }}</td>
+                                    <td>{{deploy.type}}</td>
+                                    <td>
+                                        <form action="{% url 'restart_ds' %}" method="POST" >
+                                            {% csrf_token %}
+                                            <input type="hidden" name="deployment_name" value="{{ deploy.metadata.name }}">
+                                            <input type="hidden" name="deployment_ns" value="{{ deploy.metadata.namespace }}">
+                                            <button class="btn btn-light btn-sm mt-3 w-100" type="submit">Delete</button>
+                                        </form>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            
+                <!-- PVC Section -->
+                <div id="pvc-section" class="mt-4" style="display: none;">
+                    <h2>PVC</h2>
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-hover align-middle">
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Namespace</th>
+                                    <th>Access Modes</th>
+                                    <th>Status</th>
+                                    <th>Capacity</th>
+                                    <th>SC</th>
+                                    <th>Volume</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for deploy in my_pvc.items %}
+                                <tr>
+                                    <td>{{ deploy.metadata.name }}</td>
+                                    <td>{{ deploy.metadata.namespace }}</td>
+                                    <td>{{ deploy.status.access_modes }}</td>
+                                    <td>{{deploy.status.phase}}</td>
+                                    <td>{{deploy.status.capacity.storage}}</td>
+                                    <td>{{deploy.spec.storage_class_name}}</td>
+                                    <td>{{deploy.spec.volume_name}}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+
+                                <!-- PV Section -->
+                                <div id="pv-section" class="mt-4" style="display: none;">
+                                    <h2>PV Details</h2>
+                                    <div class="table-responsive">
+                                        <table class="table table-bordered table-hover align-middle">
+                                            <thead>
+                                                <tr>
+                                                    <th>Name</th>
+                                                    <th>Reclaim</th>
+                                                    <th>Claim</th>
+                                                    <th>Status</th>
+                                                    <th>Capacity</th>
+                                                    <th>SC</th>
+                                                    <th>Namespace</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {% for deploy in my_pv.items %}
+                                                <tr>
+                                                    <td>{{ deploy.metadata.name }}</td>
+                                                    <td>{{ deploy.spec.persistent_volume_reclaim_policy }}</td>
+                                                    <td>{{ deploy.spec.claim_ref.name }}</td>
+                                                    <td>{{deploy.status.phase}}</td>
+                                                    <td>{{deploy.spec.capacity.storage}}</td>
+                                                    <td>{{deploy.spec.storage_class_name}}</td>
+                                                    <td>{{deploy.spec.claim_ref.namespace}}</td>
+                                                </tr>
+                                                {% endfor %}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+
+                <!-- Events Section -->
+                <div id="events-section" class="mt-4" style="display: none;">
+                    <h2>Events</h2>
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-hover align-middle">
+                            
+                            <tbody>
+                                {% for deploy in mata.items %}
+                            <pre>  {{ deploy.reason }} : {{ deploy.note }} : {{ deploy.type }} : {{deploy.metadata.name }} </pre>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                            <!-- Nodes Section -->
+                            <div id="nodes-section" class="mt-4" style="display: none;">
+                                <h2>Nodes</h2>
+                                <div class="table-responsive">
+                                    <table class="table table-bordered table-hover align-middle">
+                                        <thead>
+                                            <tr>
+                                                <th>Node Name</th>
+                                                <th>Provider</th>
+                                                <th>Status</th>
+                                                <th>Node IP</th>
+                                                <th>OS Type</th>
+                                                <th>Delete</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for deploy in total_nodes.items %}
+                                            <tr>
+                                                <td>{{ deploy.metadata.name }}</td>
+                                                {% if deploy.metadata.name|slice:":3" == "aks" %}
+                                                <td>Azure</td>
+                                                {% else %}
+                                                <td>AWS</td>
+                                                {% endif %}
+                                                {% for status in deploy.status.conditions %}
+                                                {% if status.type == 'Ready' or status.type == 'NotReady' %}
+                                                <td>{{ status.type }}</td>
+                                                {% endif %}
+                                                {% endfor %}
+                                                {% for status in deploy.status.addresses %}
+                                                {% if status.type == "InternalIP" %}
+                                                <td>{{ status.address }}</td>
+                                                {% endif %}
+                                                {% endfor %}
+                                                <td>{{ deploy.status.node_info.os_image }}</td>
+                                                <td>
+                                                    <form action="{% url 'restart_ds' %}" method="POST" >
+                                                        {% csrf_token %}
+                                                        <input type="hidden" name="deployment_name" value="{{ deploy.metadata.name }}">
+                                                        <input type="hidden" name="deployment_ns" value="{{ deploy.metadata.namespace }}">
+                                                        <button class="btn btn-light btn-sm mt-3 w-100" type="submit">Delete</button>
+                                                    </form>
+                                                </td>
+                                            </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+        
+                <!-- StatefulSets Section -->
+                <div id="sts-section" class="mt-4" style="display: none;">
+                    <h2>StatefulSets</h2>
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-hover align-middle">
+                            <thead>
+                                <tr>
+                                    <th>StatefulSets Name</th>
+                                    <th>Namespace</th>
+                                    <th>Replicas</th>
+                                    <th>Restart/Delete</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for deploy in my_sts.items %}
+                                <tr>
+                                    <td>{{ deploy.metadata.name }}</td>
+                                    <td>{{ deploy.metadata.namespace }}</td>
+                                    <td>{{ deploy.spec.replicas }}</td>
+                                    <td>
+                                        <form action="{% url 'restart_sts' %}" method="POST">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="deployment_name" value="{{ deploy.metadata.name }}">
+                                            <input type="hidden" name="deployment_ns" value="{{ deploy.metadata.namespace }}">
+                                            <button class="btn btn-light btn-sm mt-3 w-100" type="submit">Restart</button>
+                                        </form>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <p>© 2024 K8s Dashboard. All rights reserved.</p>
+    </footer>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            // Restart Confirmation
+            document.getElementById("confirmRestartBtn").addEventListener("click", function () {
+                document.getElementById("restartForm").submit();
+            });
+        
+            // Delete Confirmation
+            document.getElementById("confirmDeleteBtn").addEventListener("click", function () {
+                document.getElementById("deleteForm").submit();
+            });
+        });
+        
+        
+                
+        function showHome() {
+            document.querySelectorAll('.content > div').forEach(div => div.style.display = 'none');
+            document.getElementById('home-section').style.display = 'block';
+        }
+
+        function showPods() {
+            document.querySelectorAll('.content > div').forEach(div => div.style.display = 'none');
+            document.getElementById('pods-section').style.display = 'block';
+        }
+
+        function showDeployment() {
+            document.querySelectorAll('.content > div').forEach(div => div.style.display = 'none');
+            document.getElementById('deployment-section').style.display = 'block';
+        }
+
+        function showDs() {
+            document.querySelectorAll('.content > div').forEach(div => div.style.display = 'none');
+            document.getElementById('ds-section').style.display = 'block';
+        }
+
+        function showSts() {
+            document.querySelectorAll('.content > div').forEach(div => div.style.display = 'none');
+            document.getElementById('sts-section').style.display = 'block';
+        }
+
+        function showRs() {
+            document.querySelectorAll('.content > div').forEach(div => div.style.display = 'none');
+            document.getElementById('rs-section').style.display = 'block';
+        }
+
+        function showNodes() {
+            document.querySelectorAll('.content > div').forEach(div => div.style.display = 'none');
+            document.getElementById('nodes-section').style.display = 'block';
+        }
+
+        function eventSection() {
+            document.querySelectorAll('.content > div').forEach(div => div.style.display = 'none');
+            document.getElementById('events-section').style.display = 'block';
+        }
+
+        function cmSection() {
+            document.querySelectorAll('.content > div').forEach(div => div.style.display = 'none');
+            document.getElementById('cm-section').style.display = 'block';
+        }
+
+        function SecretSection() {
+            document.querySelectorAll('.content > div').forEach(div => div.style.display = 'none');
+            document.getElementById('secret-section').style.display = 'block';
+        }
+
+        function PvcSection() {
+            document.querySelectorAll('.content > div').forEach(div => div.style.display = 'none');
+            document.getElementById('pvc-section').style.display = 'block';
+        }
+
+        function PvSection() {
+            document.querySelectorAll('.content > div').forEach(div => div.style.display = 'none');
+            document.getElementById('pv-section').style.display = 'block';
+        }
+    </script>
+</body>
+</html>

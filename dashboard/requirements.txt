@@ -1,0 +1,5 @@
+django-channels
+django
+kubernetes
+boto3
+channels

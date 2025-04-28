@@ -1,0 +1,164 @@
+{
+    "services": [
+        {
+            "serviceArn": "arn:aws:ecs:us-east-1:022085345551:service/support/dashboard-test",
+            "serviceName": "dashboard-test",
+            "clusterArn": "arn:aws:ecs:us-east-1:022085345551:cluster/support",
+            "loadBalancers": [
+                {
+                    "targetGroupArn": "arn:aws:elasticloadbalancing:us-east-1:022085345551:targetgroup/ecs-suppor-dashboard-test/87d531567fc5941c",
+                    "containerName": "nginx",
+                    "containerPort": 80
+                }
+            ],
+            "serviceRegistries": [],
+            "status": "ACTIVE",
+            "desiredCount": 1,
+            "runningCount": 1,
+            "pendingCount": 0,
+            "capacityProviderStrategy": [
+                {
+                    "capacityProvider": "FARGATE",
+                    "weight": 1,
+                    "base": 0
+                }
+            ],
+            "platformVersion": "LATEST",
+            "platformFamily": "Linux",
+            "taskDefinition": "arn:aws:ecs:us-east-1:022085345551:task-definition/dashboard-test:1",
+            "deploymentConfiguration": {
+                "deploymentCircuitBreaker": {
+                    "enable": true,
+                    "rollback": true
+                },
+                "maximumPercent": 200,
+                "minimumHealthyPercent": 100,
+                "alarms": {
+                    "alarmNames": [],
+                    "enable": false,
+                    "rollback": false
+                }
+            },
+            "deployments": [
+                {
+                    "id": "ecs-svc/2523051579000419575",
+                    "status": "PRIMARY",
+                    "taskDefinition": "arn:aws:ecs:us-east-1:022085345551:task-definition/dashboard-test:1",
+                    "desiredCount": 1,
+                    "pendingCount": 0,
+                    "runningCount": 1,
+                    "failedTasks": 0,
+                    "createdAt": "2025-01-15T15:53:49.828000+05:30",
+                    "updatedAt": "2025-01-15T15:56:32.094000+05:30",
+                    "capacityProviderStrategy": [
+                        {
+                            "capacityProvider": "FARGATE",
+                            "weight": 1,
+                            "base": 0
+                        }
+                    ],
+                    "platformVersion": "1.4.0",
+                    "platformFamily": "Linux",
+                    "networkConfiguration": {
+                        "awsvpcConfiguration": {
+                            "subnets": [
+                                "subnet-0ce4caf20c5d89f70",
+                                "subnet-7f3b1171"
+                            ],
+                            "securityGroups": [
+                                "sg-e02fd7e2"
+                            ],
+                            "assignPublicIp": "ENABLED"
+                        }
+                    },
+                    "rolloutState": "COMPLETED",
+                    "rolloutStateReason": "ECS deployment ecs-svc/2523051579000419575 completed.",
+                    "serviceConnectConfiguration": {
+                        "enabled": true,
+                        "namespace": "arn:aws:servicediscovery:us-east-1:022085345551:namespace/ns-c43uznztp7sllor7",
+                        "services": []
+                    },
+                    "serviceConnectResources": []
+                }
+            ],
+            "roleArn": "arn:aws:iam::022085345551:role/aws-service-role/ecs.amazonaws.com/AWSServiceRoleForECS",
+            "events": [
+                {
+                    "id": "b4a3c27a-1a85-4ee7-9941-131f7dd5c7e7",
+                    "createdAt": "2025-01-15T15:56:32.101000+05:30",
+                    "message": "(service dashboard-test) has reached a steady state."
+                },
+                {
+                    "id": "a8ed56bf-8117-477c-9241-e1c353b19d01",
+                    "createdAt": "2025-01-15T15:56:32.100000+05:30",
+                    "message": "(service dashboard-test) (deployment ecs-svc/2523051579000419575) deployment completed."
+                },
+                {
+                    "id": "4b8fea9e-b36d-4156-8bae-8553c296bf37",
+                    "createdAt": "2025-01-15T15:56:23.049000+05:30",
+                    "message": "(service dashboard-test) registered 1 targets in (target-group arn:aws:elasticloadbalancing:us-east-1:022085345551:targetgroup/ecs-suppor-dashboard-test/87d531567fc5941c)"
+                },
+                {
+                    "id": "08ef6371-5246-4801-b14d-e6ec017a4ee2",
+                    "createdAt": "2025-01-15T15:55:43.443000+05:30",
+                    "message": "(service dashboard-test) has started 1 tasks: (task e03af2402aa5442bbca7a3978eb54b3a)."
+                },
+                {
+                    "id": "d51ec9a4-eabc-4ed1-977c-9e8eca5382da",
+                    "createdAt": "2025-01-15T15:54:02.666000+05:30",
+                    "message": "(service dashboard-test) has started 1 tasks: (task 118640d5c2a241b385d2e5c9acc4cef6)."
+                },
+                {
+                    "id": "52662bc6-8956-4e1a-a224-c70a85095635",
+                    "createdAt": "2025-01-15T15:48:31.075000+05:30",
+                    "message": "(service dashboard-test) (deployment ecs-svc/7027483644074258589) deployment failed: tasks failed to start."
+                },
+                {
+                    "id": "9f9e4c44-74d4-43b8-9169-b98bdac0fe6a",
+                    "createdAt": "2025-01-15T15:47:47.545000+05:30",
+                    "message": "(service dashboard-test) has started 1 tasks: (task 84a78c9aba984de4a24314a262e8bd26)."
+                },
+                {
+                    "id": "e3ce6fca-8606-4f3c-8a7b-2f7aeb555411",
+                    "createdAt": "2025-01-15T15:46:08.677000+05:30",
+                    "message": "(service dashboard-test) has started 1 tasks: (task a736fa9a44444366a7ef45426e346c8f)."
+                },
+                {
+                    "id": "671080d9-2d2c-4de9-bdea-5e6487e7c0c8",
+                    "createdAt": "2025-01-15T15:44:29.219000+05:30",
+                    "message": "(service dashboard-test) has started 1 tasks: (task 6dde97578cde489e8d3a5eb4b4e11c27)."
+                },
+                {
+                    "id": "f5b43c08-0d36-48c2-b981-a1c829e3f208",
+                    "createdAt": "2025-01-15T15:42:46.810000+05:30",
+                    "message": "(service dashboard-test) has started 1 tasks: (task 35d965f71edb4c8f9495a4570f815973)."
+                }
+            ],
+            "createdAt": "2025-01-15T15:42:34.275000+05:30",
+            "placementConstraints": [],
+            "placementStrategy": [],
+            "networkConfiguration": {
+                "awsvpcConfiguration": {
+                    "subnets": [
+                        "subnet-0ce4caf20c5d89f70",
+                        "subnet-7f3b1171"
+                    ],
+                    "securityGroups": [
+                        "sg-e02fd7e2"
+                    ],
+                    "assignPublicIp": "ENABLED"
+                }
+            },
+            "healthCheckGracePeriodSeconds": 250,
+            "schedulingStrategy": "REPLICA",
+            "deploymentController": {
+                "type": "ECS"
+            },
+            "createdBy": "arn:aws:iam::022085345551:role/Admin",
+            "enableECSManagedTags": true,
+            "propagateTags": "NONE",
+            "enableExecuteCommand": false
+        }
+    ],
+    "failures": []
+}
