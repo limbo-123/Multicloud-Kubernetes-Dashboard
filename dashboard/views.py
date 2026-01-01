@@ -27,7 +27,7 @@ def home(request):
      credential = AzureCliCredential()
      clienting = ContainerServiceClient(
      credential=credential,
-     subscription_id="80ea84e8-afce-4851-928a-9e2219724c69",
+     subscription_id="2639848210932904",
         )
      response = clienting.managed_clusters.list()
      cloud = "azure"
@@ -65,8 +65,8 @@ def home(request):
      
         #####AWS Cluster Details######
      aws_regions = [
-        "us-east-1", "us-west-1", "us-west-2",
-        "eu-west-1", "eu-central-1", "ap-southeast-1"
+        "us-east-1", "us-west-2",
+        "eu-central-1"
      ]
      for my_region in aws_regions:
          eks_client = boto3.client('eks', region_name=my_region)
@@ -157,6 +157,135 @@ def home(request):
 
         return render(request, 'index.html', context)
 
+# import time
+# from concurrent.futures import ThreadPoolExecutor
+# from django.shortcuts import render
+# from django.core.cache import cache
+# from azure.identity import AzureCliCredential
+# from azure.mgmt.containerservice import ContainerServiceClient
+# from kubernetes import client, config
+# import boto3
+
+# def get_aws_clusters(region):
+#     clusters = []
+#     try:
+#         eks_client = boto3.client('eks', region_name=region)
+#         ecs_client = boto3.client('ecs', region_name=region)
+
+#         eks_clusters = eks_client.list_clusters().get('clusters', [])
+#         for cluster_name in eks_clusters:
+#             cluster_info = eks_client.describe_cluster(name=cluster_name)['cluster']
+#             clusters.append({
+#                 'cluster_name': cluster_info['arn'].split('/')[1],
+#                 'cluster_region': cluster_info['arn'].split(':')[3],
+#                 'cluster_region_svc': cluster_info['arn'].split(':')[2]
+#             })
+
+#         ecs_clusters = ecs_client.list_clusters().get('clusterArns', [])
+#         for arn in ecs_clusters:
+#             clusters.append({
+#                 'cluster_name': arn.split('/')[1],
+#                 'cluster_region': arn.split(':')[3],
+#                 'cluster_region_svc': arn.split(':')[2]
+#             })
+#     except Exception as e:
+#         print(f"Error fetching AWS data for region {region}: {e}")
+#     return clusters
+
+# def home(request):
+#     start_time = time.time()
+#     all_clusters = []
+
+#     # ---------------- Azure Clusters ----------------
+#     try:
+#         credential = AzureCliCredential()
+#         clienting = ContainerServiceClient(
+#             credential=credential,
+#             subscription_id="28e1e42a-4438-4c30-9a5f-7d7b488fd883"
+#         )
+#         response = clienting.managed_clusters.list()
+#         for item in response:
+#             all_clusters.append({
+#                 'cluster_region': item.location,
+#                 'cluster_name': item.name,
+#                 'cluster_region_svc': 'azure'
+#             })
+#     except Exception as e:
+#         print("Azure cluster fetch failed:", e)
+
+#     # ---------------- AWS Clusters (Cached + Parallel) ----------------
+#     cached_clusters = cache.get('aws_clusters')
+#     if cached_clusters:
+#         all_clusters.extend(cached_clusters)
+#     else:
+#         aws_regions = ["us-east-1", "us-west-1", "us-west-2", "eu-west-1", "eu-central-1", "ap-southeast-1"]
+#         with ThreadPoolExecutor(max_workers=6) as executor:
+#             results = executor.map(get_aws_clusters, aws_regions)
+#             aws_clusters = [item for sublist in results for item in sublist]
+#         all_clusters.extend(aws_clusters)
+#         cache.set('aws_clusters', aws_clusters, timeout=300)
+
+#     # ---------------- Kubernetes API Setup ----------------
+#     try:
+#         config.load_kube_config()
+#         v1 = client.CoreV1Api()
+#         deploy = client.AppsV1Api()
+#         network = client.NetworkingV1Api()
+#         batch = client.BatchV1Api()
+#         asg = client.AutoscalingV1Api()
+#         events_api = client.EventsV1Api()
+
+#         # Safely load current context
+#         kube_contexts, current_context = config.list_kube_config_contexts()
+#         if not current_context or 'name' not in current_context:
+#             raise Exception("No current kubeconfig context found.")
+
+#         context_name = current_context['name']
+#         context_parts = context_name.split(':')
+
+#         filter_region_name = context_parts[3] if len(context_parts) > 3 else 'unknown'
+#         filtered_service_name = context_parts[2] if len(context_parts) > 2 else 'unknown'
+#         last_part = context_parts[-1]
+#         filtered_cluster_name = last_part.split('/')[-1] if '/' in last_part else last_part
+
+#         # ---------------- Fetch Kubernetes Resources ----------------
+#         context = {
+#             'pods': v1.list_pod_for_all_namespaces(limit=100),
+#             'moka': deploy.list_deployment_for_all_namespaces(),
+#             'my_ds': deploy.list_daemon_set_for_all_namespaces(),
+#             'my_sts': deploy.list_stateful_set_for_all_namespaces(),
+#             'config': filtered_cluster_name,
+#             'region': filter_region_name,
+#             'service': filtered_service_name,
+#             'mata': events_api.list_event_for_all_namespaces(limit=100),
+#             'list': all_clusters,
+#             'my_nodes': v1.list_node(),
+#             'my_secret': v1.list_secret_for_all_namespaces(limit=100),
+#             'my_configmap': v1.list_config_map_for_all_namespaces(limit=100),
+#             'my_pvc': v1.list_persistent_volume_claim_for_all_namespaces(),
+#             'my_pv': v1.list_persistent_volume(),
+#             'total_ns': v1.list_namespace(),
+#             'total_ingress': network.list_ingress_for_all_namespaces(),
+#             'total_svc': v1.list_service_for_all_namespaces(),
+#             'total_cjob': batch.list_cron_job_for_all_namespaces(),
+#             'tatal_job': batch.list_job_for_all_namespaces(),
+#             'asg': asg.list_horizontal_pod_autoscaler_for_all_namespaces(),
+#             'total_rs': deploy.list_replica_set_for_all_namespaces(),
+#             'total_nodes': v1.list_node()
+#         }
+
+#     except Exception as e:
+#         print("Kube API or context load failed:", e)
+#         context = {
+#             'list': all_clusters,
+#             'error': 'Could not fetch Kubernetes cluster info'
+#         }
+
+#     print(f"Home view loaded in {time.time() - start_time:.2f}s")
+#     return render(request, 'index.html', context)
+
+
+
 def update_cluster(request):
     # Switching cluster post UI selection
      if request.method == 'POST':
@@ -177,7 +306,7 @@ def update_cluster(request):
                     return redirect(home) 
                elif cluster_svc == 'azure':
                     command = [
-                         "az", "aks", "get-credentials", "--resource-group", "1-49345016-playground-sandbox", "--name", "azure-dev", "--overwrite-existing"
+                         "az", "aks", "get-credentials", "--resource-group", "1-b56a4dd3-playground-sandbox", "--name", "prod-aks", "--overwrite-existing"
                      ]
                     subprocess.run(command, check=True)
                     print("Cluster has been changed")

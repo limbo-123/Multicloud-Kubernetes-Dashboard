@@ -414,7 +414,6 @@
             </div>
         </div>
 
-
                 <!-- Events Tab -->
                 <div class="tab-pane fade" id="events" role="tabpanel" aria-labelledby="events-tab">
                     <div class="card">
@@ -470,7 +469,7 @@
                 <a class="nav-link" id="events-tab" data-bs-toggle="pill" href="#events" role="tab" aria-controls="events" aria-selected="false">Services</a>
             </li>
             <li class="nav-item" role="presentation">
-                <a class="nav-link" id="yaml-tab" data-bs-toggle="pill" href="#yaml" role="tab" aria-controls="yaml" aria-selected="false">Tasks</a>
+                <a class="nav-link" id="task-tab" data-bs-toggle="pill" href="#yaml" role="tab" aria-controls="yaml" aria-selected="false">Tasks</a>
             </li>
             <li class="nav-item" role="presentation">
                 <a class="nav-link" id="yaml-tab" data-bs-toggle="pill" href="#ci" role="tab" aria-controls="ci" aria-selected="false">Container Instances</a>
@@ -538,7 +537,7 @@
 
 
         <!-- YAML Tab -->
-        <div class="tab-pane fade" id="yaml" role="tabpanel" aria-labelledby="yaml-tab">
+        <div class="tab-pane fade" id="yaml" role="tabpanel" aria-labelledby="task-tab">
             <div class="card">
                 <div class="card-header">
                     Tasks
@@ -551,6 +550,19 @@
             </div>
         </div>
 
+        <!-- Services Tab -->
+    <div class="tab-pane fade" id="events" role="tabpanel" aria-labelledby="events-tab">
+        <div class="card">
+            <div class="card-header">Services</div>
+            <div class="card-body">
+                {% for service_arn, service_name in services %}
+                <pre><a href="{% url 'ecs' clusterArn.clusterName service_name region %}">{{ service_arn }}</a></pre>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+ </div>
+        </div>
          <!-- YAML Tab -->
          <div class="tab-pane fade" id="ci" role="tabpanel" aria-labelledby="ci-tab">
             <div class="card">
@@ -649,24 +661,6 @@
                         </div>
                 </div>
             </div>
-        </div>
-
-
-                <!-- Events Tab -->
-                <div class="tab-pane fade" id="events" role="tabpanel" aria-labelledby="events-tab">
-                    <div class="card">
-                        <div class="card-header">
-                            Services
-                        </div>
-                        <div class="card-body">
-                            {% for service_arn, service_name in services %}
-                            <pre><a href="{% url 'ecs' clusterArn.clusterName service_name region %}">{{ service_arn }}</a></pre>
-                            {% endfor %}
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
     </main>
 {% endif %}
     <!-- Bootstrap JS and dependencies -->
